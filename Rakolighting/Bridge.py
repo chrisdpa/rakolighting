@@ -12,9 +12,11 @@ class Bridge(object):
         self._socket.bind(('', 0))
         self._port = port
         self._socket.sendto('D', ('255.255.255.255', self._port))
-        data, addr = self._socket.recvfrom(128)
-        if data:
-            self._address = addr
+        self._socket.sendto('D', ('255.255.255.255', self._port))
+        resp = self._socket.recvfrom(256)
+        print(resp)
+        if resp:
+            _, self._address = resp
         else:
             raise Exception('Cannot find a rakobrige')
 
@@ -30,5 +32,13 @@ class Bridge(object):
 
     def level(self, room, channel, level):
         """Set the level for room and channel.
-        All value are unsigned chars, eg 0-255"""
-        return self.__send([82, 7, 0, room % 256, channel % 256, 12, level % 256, 0])
+        All values are unsigned chars, eg 0-255"""
+        return self.__send([0x52, 7, 0, room % 256, channel % 256, 12, level % 256, 0])
+
+    def fade_up(self, room, channel):
+        """Fade up to full-on"""
+        return self.__send([0x52, 5, 0, room % 256, channel % 256, 1, 0])
+
+    def fade_down(self, room, channel):
+        """ Fade down to full-off"""
+        return self.__send([0x52, 5, 0, room % 256, channel % 256, 2, 0])
